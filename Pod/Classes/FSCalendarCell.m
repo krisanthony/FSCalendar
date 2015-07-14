@@ -168,6 +168,8 @@
         _subtitleLabel.hidden = YES;
     }
     _backgroundLayer.hidden = !self.selected && !self.isToday;
+    _backgroundLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
+    _backgroundLayer.shouldRasterize = YES;
     _backgroundLayer.path = _appearance.cellStyle == FSCalendarCellStyleCircle ?
     [UIBezierPath bezierPathWithOvalInRect:_backgroundLayer.bounds].CGPath :
     [UIBezierPath bezierPathWithRect:_backgroundLayer.bounds].CGPath;
