@@ -16,6 +16,7 @@
 
 @interface FSCalendarCell ()
 
+@property (weak, nonatomic) CAShapeLayer *weekLayer;
 @property (weak, nonatomic) CAShapeLayer *backgroundLayer;
 @property (weak, nonatomic) CAShapeLayer *eventLayer;
 @property (weak, nonatomic) CALayer      *imageLayer;
@@ -58,6 +59,15 @@
         backgroundLayer.hidden = YES;
         [self.contentView.layer insertSublayer:backgroundLayer atIndex:0];
         self.backgroundLayer = backgroundLayer;
+        self.backgroundLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
+        self.backgroundLayer.shouldRasterize = YES;
+        
+        CAShapeLayer *weekLayer = [CAShapeLayer layer];
+        weekLayer.hidden = YES;
+        [self.contentView.layer insertSublayer:weekLayer atIndex:0];
+        self.weekLayer = weekLayer;
+        self.weekLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
+        self.weekLayer.shouldRasterize = YES;
         
         CAShapeLayer *eventLayer = [CAShapeLayer layer];
         eventLayer.backgroundColor = [UIColor clearColor].CGColor;
@@ -79,13 +89,18 @@
 {
     [super setBounds:bounds];
     CGFloat titleHeight = self.bounds.size.height*5.0/6.0;
-    CGFloat diameter = MIN(self.bounds.size.height*5.0/6.0,self.bounds.size.width);
+    CGFloat diameter = MIN(self.bounds.size.height*5.0/6.0,self.bounds.size.width) - 6.f;
     _backgroundLayer.frame = CGRectMake((self.bounds.size.width-diameter)/2,
                                         (titleHeight-diameter)/2,
                                         diameter,
                                         diameter);
     
-    CGFloat eventSize = _backgroundLayer.frame.size.height/6.0;
+    _weekLayer.frame = CGRectMake(0,
+                                  0,
+                                  self.bounds.size.width,
+                                  diameter + 6.f);
+    
+    CGFloat eventSize = _backgroundLayer.frame.size.height/5.0;
     _eventLayer.frame = CGRectMake((_backgroundLayer.frame.size.width-eventSize)/2+_backgroundLayer.frame.origin.x, CGRectGetMaxY(_backgroundLayer.frame)+eventSize*0.2, eventSize*0.8, eventSize*0.8);
     _eventLayer.path = [UIBezierPath bezierPathWithOvalInRect:_eventLayer.bounds].CGPath;
 }
@@ -149,6 +164,35 @@
     _subtitleLabel.textColor = [self colorForCurrentStateInDictionary:_appearance.subtitleColors];
     _backgroundLayer.fillColor = [self colorForCurrentStateInDictionary:_appearance.backgroundColors].CGColor;
     
+    if ([self isDateInWeek:self.date])
+    {
+        UIBezierPath *shapePath;
+        _weekLayer.fillColor = [UIColor colorWithWhite:0 alpha:.05f].CGColor;
+        _weekLayer.hidden = NO;
+        if (self.date.fs_weekday == 1)
+        {
+            shapePath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(4.f, 0, CGRectGetWidth(_weekLayer.bounds)-4.f, CGRectGetHeight(_weekLayer.bounds))
+                                                            byRoundingCorners:UIRectCornerTopLeft | UIRectCornerBottomLeft
+                                                                  cornerRadii:CGSizeMake(CGRectGetHeight(_weekLayer.bounds)/2.f, CGRectGetHeight(_weekLayer.bounds)/2.f)];
+        }
+        else if (self.date.fs_weekday == 7)
+        {
+            shapePath = [UIBezierPath bezierPathWithRoundedRect:CGRectMake(0, 0, CGRectGetWidth(_weekLayer.bounds)-4.f, CGRectGetHeight(_weekLayer.bounds))
+                                                            byRoundingCorners:UIRectCornerTopRight | UIRectCornerBottomRight
+                                                                  cornerRadii:CGSizeMake(CGRectGetHeight(_weekLayer.bounds)/2.f, CGRectGetHeight(_weekLayer.bounds)/2.f)];
+        }
+        else
+        {
+            shapePath = [UIBezierPath bezierPathWithRect:_weekLayer.bounds];
+        }
+        _weekLayer.path = shapePath.CGPath;
+    }
+    else
+    {
+        _weekLayer.fillColor = [UIColor colorWithWhite:0 alpha:.3f].CGColor;
+        _weekLayer.hidden = YES;
+    }
+    
     CGFloat titleHeight = [_titleLabel.text sizeWithAttributes:@{NSFontAttributeName:self.titleLabel.font}].height;
     if (_subtitleLabel.text) {
         _subtitleLabel.hidden = NO;
@@ -168,8 +212,6 @@
         _subtitleLabel.hidden = YES;
     }
     _backgroundLayer.hidden = !self.selected && !self.isToday;
-    _backgroundLayer.rasterizationScale = 2.0 * [UIScreen mainScreen].scale;
-    _backgroundLayer.shouldRasterize = YES;
     _backgroundLayer.path = _appearance.cellStyle == FSCalendarCellStyleCircle ?
     [UIBezierPath bezierPathWithOvalInRect:_backgroundLayer.bounds].CGPath :
     [UIBezierPath bezierPathWithRect:_backgroundLayer.bounds].CGPath;
@@ -216,6 +258,7 @@
     if (self.isWeekend && [[dictionary allKeys] containsObject:@(FSCalendarCellStateWeekend)]) {
         return dictionary[@(FSCalendarCellStateWeekend)];
     }
+    
     return dictionary[@(FSCalendarCellStateNormal)];
 }
 
@@ -231,6 +274,11 @@
 - (BOOL)isDateInRange:(NSDate *)date
 {
     return [date fs_daysFrom:[self calendar].minimumDate] >= 0 && [date fs_daysFrom:[self calendar].maximumDate] <= 0;
+}
+
+- (BOOL)isDateInWeek:(NSDate *)date
+{
+    return [date fs_weekOfYear] == [[self calendar].selectedDate fs_weekOfYear];
 }
 
 @end
