@@ -207,9 +207,10 @@
     if (self.isToday) {
         return dictionary[@(FSCalendarCellStateToday)];
     }
-    if (self.isPlaceholder) {
+    if (self.isPlaceholder || ![self isDateInRange:self.date]) {
         return dictionary[@(FSCalendarCellStatePlaceholder)];
     }
+    
     if (self.isWeekend && [[dictionary allKeys] containsObject:@(FSCalendarCellStateWeekend)]) {
         return dictionary[@(FSCalendarCellStateWeekend)];
     }
@@ -223,6 +224,11 @@
         superview = superview.superview;
     }
     return (FSCalendar *)superview;
+}
+
+- (BOOL)isDateInRange:(NSDate *)date
+{
+    return [date fs_daysFrom:[self calendar].minimumDate] >= 0 && [date fs_daysFrom:[self calendar].maximumDate] <= 0;
 }
 
 @end
