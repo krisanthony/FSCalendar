@@ -395,7 +395,9 @@
     if (![self isDateInRange:selectedDate]) {
         [NSException raise:@"selectedDate out of range" format:nil];
     }
-    [self setSelectedDate:selectedDate animate:NO];
+    [self setSelectedDate:selectedDate animate:YES];
+    
+    [self.collectionView.visibleCells makeObjectsPerformSelector:@selector(setNeedsLayout)];
 }
 
 - (void)setSelectedDate:(NSDate *)selectedDate animate:(BOOL)animate
