@@ -14,7 +14,7 @@
 
 #import "FSCalendarDynamicHeader.h"
 
-#define kDefaultHeaderHeight 40
+#define kDefaultHeaderHeight 52
 #define kWeekHeight roundf(self.fs_height/12)
 
 @interface FSCalendar (DataSourceAndDelegate)
@@ -144,10 +144,10 @@
     _currentMonth = [_currentDate copy];
     
     CALayer *topBorderLayer = [CALayer layer];
-    topBorderLayer.backgroundColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.2].CGColor;
+    topBorderLayer.backgroundColor = [[UIColor lightGrayColor] colorWithAlphaComponent:0.f].CGColor;
     [self.layer addSublayer:topBorderLayer];
     self.topBorderLayer = topBorderLayer;
-    
+
     CALayer *bottomBorderLayer = [CALayer layer];
     bottomBorderLayer.backgroundColor = _topBorderLayer.backgroundColor;
     [self.layer addSublayer:bottomBorderLayer];
@@ -211,8 +211,9 @@
 {
     [super layoutSublayersOfLayer:layer];
     if (layer == self.layer) {
-        _topBorderLayer.frame = CGRectMake(0, -1, self.fs_width, 1);
-        _bottomBorderLayer.frame = CGRectMake(0, self.fs_height, self.fs_width, 1);
+        CGFloat onePixel = 1.f/[UIScreen mainScreen].scale;
+        _topBorderLayer.frame = CGRectMake(0, -onePixel, self.fs_width, onePixel);
+        _bottomBorderLayer.frame = CGRectMake(0, self.fs_height, self.fs_width, onePixel);
     }
 }
 
