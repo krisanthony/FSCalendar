@@ -97,7 +97,7 @@
     _headerHeight     = -1;
     _calendar         = [NSCalendar currentCalendar];
     
-    NSArray *weekSymbols = [_calendar shortStandaloneWeekdaySymbols];
+    NSArray *weekSymbols = [_calendar veryShortStandaloneWeekdaySymbols];
     _weekdays = [NSMutableArray arrayWithCapacity:weekSymbols.count];
     for (int i = 0; i < weekSymbols.count; i++) {
         UILabel *weekdayLabel = [[UILabel alloc] initWithFrame:CGRectZero];
